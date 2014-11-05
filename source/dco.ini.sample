@@ -1,0 +1,11 @@
+;DC=dmd
+DC=
+;DCStandardEnvBin=dmd2/windows/bin
+DCStandardEnvBin=
+;SpecialLib=dfl
+SpecialLib=
+;importPath=-I$(DMDInstallDir)windows/import
+importPath=
+;lflags=-L/su:console:4
+;lflags=-L/SUBSYSTEM:WINDOWS
+lflags=
