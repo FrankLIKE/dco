@@ -2,6 +2,7 @@
 
 	"name": "dco",
 	"description": "dco is a build tool, it can be built by DUB and Visual Studio .NET(such as VS 2010).",
+	"license": "LGPL-3.0",
 	"authors": ["FrankLIKE"],
 	"homepage": "https://github.com/FrankLIKE/dco",
 	"targetName": "dco",
