@@ -8,4 +8,7 @@ SpecialLib=
 importPath=
 ;lflags=-L/su:console:4
 ;lflags=-L/SUBSYSTEM:WINDOWS
+;lflags=-L/SUBSYSTEM:WINDOWS -L/ENTRY:mainCRTStartup
 lflags=
+;dflags=
+;libs=
