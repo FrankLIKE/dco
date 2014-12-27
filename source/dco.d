@@ -51,7 +51,7 @@ import	std.exception;
 import  std.json;
 import std.exception;
 
-string strVersion ="v0.0.7";
+string strVersion ="v0.0.8";
 string	strAddArgs,strAddArgsdfl = " -de -w -property ";
 string	strDebug,strDebugDefault=" -debug";
 string	strTargetLflags,strConsole=" -L/su:console:4 ",strWindows = " -L-Subsystem:Windows ",strWindows64 = " -L-Subsystem:Windows -L-ENTRY:mainCRTStartup ";
