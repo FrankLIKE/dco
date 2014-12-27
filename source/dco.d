@@ -55,7 +55,7 @@ string strVersion ="v0.0.7";
 string	strAddArgs,strAddArgsdfl = " -de -w -property ";
 string	strDebug,strDebugDefault=" -debug";
 string	strTargetLflags,strConsole=" -L/su:console:4 ",strWindows = " -L-Subsystem:Windows ",strWindows64 = " -L-Subsystem:Windows -L-ENTRY:mainCRTStartup ";
-string	strTargetLib,SpecialLib = "dfl",strWinLibs=" user32.lib ole32.lib oleAut32.lib gdi32.lib Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib "; 
+string	strTargetLib,SpecialLib = "dfl",strWinLibs=" user32.lib ole32.lib oleAut32.lib gdi32.lib Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib kernel32.lib "; 
 string	strDFile;
 string	strAddLib;
 string	strOtherArgs;
@@ -89,6 +89,7 @@ void main(string[] args)
 			ShowUsage();
 			return;
 		}
+		
 	}
 	if(args.length ==1)
 	{
@@ -440,6 +441,14 @@ void buildExe(string[] args)
 	{
 		strTargetLflags = strWindows64;
 	}
+	if(strTargetLflags == "" && strLflags =="")
+	{
+		if(bUseSpecialLib) 
+			strTargetLflags = strWindows;
+		else
+			strTargetLflags = strConsole;
+	}
+	
 	buildExe();
 }
 
@@ -466,6 +475,7 @@ void buildExe()
 	if (wait(pid) != 0)
 	{
 		writeln("Compilation failed:\n", pid);
+		removeExe(strTargetFileName);
 	}
 	else
 	{
@@ -541,7 +551,7 @@ bool findFiles()
 			ReadDFile(d,bPackage);
 		}
 		
-		if(d.toLower().indexOf("ignorefiles") != -1) continue;
+		if(d.toLower().indexOf("ignore") != -1) continue;
  
 		strDFile ~= " ";
 		strDFile ~= d.name[2 ..$].idup;
@@ -666,13 +676,11 @@ void ReadDFile(string dFile,bool bPackage)
 				SpecialLib = "dgui";
 				break;
 			}
-			else
-			{
-				if(bUseSpecialLib) 
-					strTargetLflags = strWindows;
-        		 else
-					strTargetLflags = strConsole;
-			}
+        }
+        else if(line.indexOf("WinMain") != -1)
+        {
+			strTargetLflags = strWindows;
+			break;
         }
         icount++;
         if(icount >100) break;
