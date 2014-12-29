@@ -54,8 +54,8 @@ import std.exception;
 string strVersion ="v0.0.8";
 string	strAddArgs,strAddArgsdfl = " -de -w -property ";
 string	strDebug,strDebugDefault=" -debug";
-string	strTargetLflags,strConsole=" -L/su:console:4 ",strWindows = " -L-Subsystem:Windows ",strWindows64 = " -L-Subsystem:Windows -L-ENTRY:mainCRTStartup ";
-string	strTargetLib,SpecialLib = "dfl",strWinLibs=" user32.lib ole32.lib oleAut32.lib gdi32.lib Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib kernel32.lib "; 
+string	strTargetLflags,strConsole=" -L-su:console:4 ",strWindows = " -L-Subsystem:Windows ",strWindows64 = " -L-Subsystem:Windows -L-ENTRY:mainCRTStartup ";
+string	strTargetLib,SpecialLib = "dfl",strWinLibs=" ole32.lib oleAut32.lib gdi32.lib Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib kernel32.lib ",strWinLibs64 =" user32.lib "; 
 string	strDFile;
 string	strAddLib;
 string	strOtherArgs;
@@ -178,10 +178,10 @@ bool readConfig(string configFile)
   
 		strDC = configKeyValue.get("DC","dmd"); 
 		 
-		strDCStandardEnvBin = configKeyValue.get("DCStandardEnvBin","dmd2\\windows\\bin"); 
-		SpecialLib = configKeyValue.get("SpecialLib","dfl");  
+		strDCStandardEnvBin = configKeyValue.get("DCStandardEnvBin",strDCStandardEnvBin); 
+		SpecialLib = configKeyValue.get("SpecialLib",SpecialLib);  
 		strImport = configKeyValue.get("importPath","");
-		strLflags = configKeyValue.get("lflags","-L/su:console:4"); 
+		strLflags = configKeyValue.get("lflags",strConsole); 
 		strDflags = configKeyValue.get("dfalgs",""); 
 		strLibs = configKeyValue.get("libs",""); 
 		return true;
@@ -452,7 +452,21 @@ void buildExe(string[] args)
 		else
 			strTargetLflags = strConsole;
 	}
-	
+ 
+	if(compileType == "64")
+	{
+		if(strip(strTargetLflags) !=strip(strConsole))
+		{
+			if(strAddLib.indexOf(strip(strWinLibs64)) == -1)
+			{
+				strAddLib ~= strWinLibs64;
+			}
+		}
+		else //console x64 not set
+		{
+			strTargetLflags= "";
+		}
+   }  
 	buildExe();
 }
 
@@ -482,7 +496,7 @@ void buildExe()
 	}
 	else
 	{
-			sw.stop();
+		sw.stop();
    
 		writeln("\nCompile time :" , sw.peek().msecs/1000.0,"secs");
 
@@ -696,14 +710,14 @@ void initNewConfigFile()
 	scope(failure) ini.close();
 	ini.writeln(";DC=dmd");
 	ini.writeln("DC=");
-	ini.writeln(";DCStandardEnvBin=dmd2\\windows\\bin");
+	ini.writeln(";DCStandardEnvBin=" ~ strDCStandardEnvBin);
 	ini.writeln("DCStandardEnvBin=");
-	ini.writeln(";SpecialLib=dfl");
+	ini.writeln(";SpecialLib=" ~ SpecialLib);
 	ini.writeln("SpecialLib=");
-	ini.writeln(";importPath=-I$(DMDInstallDir)windows/import");
+	ini.writeln(";importPath=" ~ strImportDefault);
 	ini.writeln("importPath=");
-	ini.writeln(";lflags=-L/su:console:4");
-	ini.writeln(";lflags=-L-Subsystem:Windows");
+	ini.writeln(";lflags=" ~ strConsole);
+	ini.writeln(";lflags=" ~ strWindows);
 	ini.writeln("lflags=");
 	ini.writeln(";dflags=");
 	ini.writeln(";libs=");
