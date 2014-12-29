@@ -306,6 +306,10 @@ void removeExe(string strPathExe)
 			writeln(strPathExe ~ ", remove  failed!");
 			return;
 		}
+		else
+		{
+			writeln(strPathExe ~ ", remove  ok!");
+		}
 	}
 }
 
@@ -475,7 +479,6 @@ void buildExe()
 	if (wait(pid) != 0)
 	{
 		writeln("Compilation failed:\n", pid);
-		removeExe(strTargetFileName);
 	}
 	else
 	{
