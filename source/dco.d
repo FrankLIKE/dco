@@ -37,7 +37,7 @@ Authors:   FrankLIKE
 Source: $(dco.d)
 
 Created Time:2014-10-27
-Modify Time:2014-10-31~2015-1-7
+Modify Time:2014-10-31~2015-1-27
 */
 module dco;
 /// dco 
@@ -50,8 +50,9 @@ import	std.path;
 import	std.exception;
 import  std.json;
 import std.typetuple;
+import std.algorithm;
 
-string strVersion ="v0.1.0";
+string strVersion ="v0.1.1";
 
 string	strAddArgs,strAddArgsdfl = " -de -w -property ";
 string	buildMode,strDebugDefault=" -debug";
@@ -80,6 +81,7 @@ string strPackageName,strArgs,strTargetName,strTargetType ="exe",strDC ="dmd",st
 //targetTypes
 enum targetTypes {exe,lib,staticLib,dynamicLib,sourceLib,none};
 string[] targetExt = ["exe","lib","dll","a"];
+string separator = "\\";
 void main(string[] args)
 {
 	if(!findDCEnv()) return;
@@ -117,13 +119,13 @@ void main(string[] args)
 
 	buildExe(args);
 }
-
+ 
 bool findDCEnv()
 {
 	if(!readConfig(configFile)) return false;
 	bool bLocal = readConfig(configFileLocal);
 	string strNoDC = "Not found '"~strDC~"' in your computer,please setup it.",strTemp,strTempFile;
-	string strDCExe = "\\" ~ strDC.stripRight() ~ ".exe";
+	string strDCExe = separator ~ strDC.stripRight() ~ ".exe";
 	string strFireWall = " Maybe FirWall stop checking the " ~ strDCExe ~ ",please stop it.";
 
 	auto len = strDCStandardEnvBin.length;
@@ -158,7 +160,7 @@ bool checkDC(string DCPath,string strDCExe)
 		strDCEnv = DCPath;
 		strDCEnvFile =  DCPath ~ strDCExe;
 
-		string strTempFile = DCPath ~ "\\dco.exe";
+		string strTempFile = DCPath ~ separator ~"dco.exe";
 		if(exists(strTempFile)) return true;
 	}
 	return false;
@@ -174,8 +176,8 @@ bool readConfig(string _configFile)
 		if(!isLocal)
 		{
 			strConfigPath = thisExePath();
-			strConfigPath = strConfigPath[0..strConfigPath.lastIndexOf("\\")].idup;
-			strConfigPath ~= "\\" ~ _configFile;
+			strConfigPath = strConfigPath[0..strConfigPath.lastIndexOf(separator)].idup;
+			strConfigPath ~= separator ~ _configFile;
 
 			if(!enforce(exists(strConfigPath),"'FireWall' stop to access the '" ~ _configFile ~ "',please stop it."))
 			{
@@ -191,7 +193,7 @@ bool readConfig(string _configFile)
 			if("importPath" in configKeyValue) 
 				configKeyValue["importPath"] = "";
  
-			strConfigPath = getcwd() ~ "\\" ~ _configFile;
+			strConfigPath = getcwd() ~ separator ~ _configFile;
 			bGetLocal = exists(strConfigPath);
 			if(!bGetLocal) return true;  //not find ,but can work.
 		}
@@ -215,9 +217,9 @@ bool readConfig(string _configFile)
 		SpecialLib = configKeyValue.get("SpecialLib","");
 		strImport = configKeyValue.get("importPath","");
 		strLflags = configKeyValue.get("lflags",strConsole); 
-		strDflags = configKeyValue.get("dfalgs",""); 
+		strDflags = configKeyValue.get("dflags",""); 
 		strLibs = configKeyValue.get("libs",""); 
-
+          
 		if(isLocal)
 		{
 			switch(strLflags)
@@ -279,7 +281,7 @@ bool readConfig(string _configFile)
 			}
 			if(targetName !="")
 			{
-				strTargetFileName = getcwd() ~ "\\" ~ targetName;
+				strTargetFileName = getcwd() ~ separator ~ targetName;
 				strTargetName = targetName;
 				if(targetName.indexOf(".") == -1)
 				{
@@ -517,6 +519,7 @@ void buildExe(string[] args)
 					break;
 				case "shared":
 					strTargetTypeSwitch = " -" ~ targetTypeShared;
+					strTargetType = "dll";
 					break;
 				default:
 					if(c == "m64" || c == "m32mscoff")
@@ -536,18 +539,14 @@ void buildExe(string[] args)
 	{
 		strOtherArgs ~= " -of" ~ strTargetLib;
 		strAddLib = strLibs;
-		strTargetFileName = getcwd() ~ "\\" ~ strTargetLib;
+		strTargetFileName = getcwd() ~ separator ~ strTargetLib;
 	}
 	else
 	{
-		strTargetFileName = getcwd() ~ "\\" ~ strTargetName;
+		strTargetFileName = getcwd() ~ separator ~ strTargetName;
 	}
 
-    if(strDflags !="")
-    {
-    	strOtherArgs ~= " ";
-    	strOtherArgs ~= strDflags;
-    }
+   
     if(strTargetLflags == "" && strLflags !="")
 	{
 		strTargetLflags = strLflags;
@@ -562,7 +561,13 @@ void buildExe(string[] args)
 	}
 
 build: 
-
+	
+	if(strDflags !="")
+    {
+    	strOtherArgs ~= " ";
+    	strOtherArgs ~= strDflags;
+    }
+ 
 	if(bUseSpecialLib)
 	{
 		if(SpecialLib == "dfl")
@@ -620,6 +625,11 @@ void buildExe()
 	{
 		writeln("\n"~ buildstr);
 		writeln("\nCompilation failed:\n", pid);
+		
+		auto err = File("ErrBuild.txt","w"); 
+		scope(failure) err.close();
+		err.writeln(buildstr);
+		err.close();
 	}
 	else
 	{
@@ -688,7 +698,7 @@ bool findFiles()
 	    {
 			if(icount == 0)
 			{
-				strTargetName = d.name[(d.name.lastIndexOf("\\")+1) .. d.name.lastIndexOf(".")];
+				strTargetName = d.name[(d.name.lastIndexOf(separator)+1) .. d.name.lastIndexOf(".")];
 				strTargetName ~= "." ~ strTargetType; 
 			}
 		}
@@ -743,7 +753,7 @@ void getTargetInfo()
 		{
 			strTargetName = strTargetName ~ "." ~ strTargetType;
 		}
-		strTargetFileName = root_path ~ "\\" ~ strTargetName;
+		strTargetFileName = root_path ~ separator ~ strTargetName;
 	}
 	if(!findStr(strTargetFileName,targetExt))
 	{
@@ -753,59 +763,58 @@ void getTargetInfo()
 }
 
 bool findStr(string strIn,string[] strFind)
-{
-	bool bFind = false;
-	foreach(str;strFind)
-	{
-		if(strIn.indexOf(str) !=-1)
-       {   
-           bFind = true;
-			break;
-       }
-	}
-	return bFind;
+{ 
+   return strFind.canFind!(a => strIn.canFind(a) != false);
 }
 
 void ShowUsage()
 {
 	writeln("
-			dco build tool " ~ strVersion ~ "
-			written by FrankLIKE.
-			Usage:
-			dco [<switches...>] <files...>
+dco build tool " ~ strVersion ~ "
+written by FrankLIKE.
+Usage:
+dco [<switches...>] <files...>
 
-			for example:     dco  
-			or: dco app.d 
+for example:     
+	dco 
+or: dco app.d 
 
-			build for dfl2:	 dco  
-			or: dco -gui
-			or: dco *.d -gui
-			build for other: dco -lib
-			or: dco *.d -lib
-			or: dco *.d -release
-			or: dco *.d -arg -addlib
+(if you build a bigger project ,you can config a local.ini(get by 'dco -ini'),
+then enter 'dco',ok.)
 
-			Switches:
-			-h	       Print help(usage: -h,or -help).
-			-copy      Copy new exe or lib to 'windows/bin' or 'lib' Folder. 
-			-release   Build files's Release version(Default version is 'debug').
-			-gui       Make a Windows GUI exe without a console(For DFL or Dgui).
-			-use       Use the Sepetail Lib to create exe with console.
-			-win       Make a Windows GUI exe without a console
-			(For any other: the same to -winexe,-windows).
-			-lib       Build lib files.
-			-ini       Create the local.ini file for config. 
-			-init      the same to -ini.
-			-all       Build files by args,libs(Default no dfl_debug.lib) in Console.
-			-arg       Build files by args(-de -w -property -X).
-			-addlib    Build files by add libs(user32.lib ole32.lib oleAut32.lib gdi32.lib 
-			Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib).
-			-m64       Generate 64bit lib or exe.
-			-m32mscoff Generate x86 ms coff lib or exe,and please set some info in sc.ini. 
+build for dfl2:	 
+    
+    dco  
+or: dco -gui
+or: dco *.d -gui
+			
+build for other: 
 
-			IgnoreFiles:
-			If you have some files to ignore,please put them in Folder 'ignoreFiles'.
-			");
+    dco -lib
+or: dco *.d -lib
+or: dco *.d -release
+or: dco *.d -arg -addlib
+
+Switches:
+-h	   Print help(usage: -h,or -help).
+-ini       Create the local.ini file for config. 
+-init      the same to -ini.
+-copy      Copy new exe or lib to 'windows/bin' or 'lib' Folder. 
+-release   Build files's Release version(Default version is 'debug').
+-gui       Make a Windows GUI exe without a console(For DFL or Dgui).
+-use       Use the Sepetail Lib to create exe with console.
+-win       Make a Windows GUI exe without a console
+           (For any other: the same to -winexe,-windows).
+-lib       Build lib files.
+-all       Build files by args,libs(Default no dfl_debug.lib) in Console.
+-arg       Build files by args(-de -w -property -X).
+-addlib    Build files by add libs(user32.lib ole32.lib oleAut32.lib gdi32.lib 
+	    Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib).
+-m64       Generate 64bit lib or exe.
+-m32mscoff Generate x86 ms coff lib or exe,and please set some info in sc.ini. 
+
+IgnoreFiles:If you have some files to ignore,please put them in Folder 'ignoreFiles'.
+  ");
 } 
 
 void ReadDFile(string dFile,bool bPackage)
@@ -907,11 +916,4 @@ void initNewConfigFile()
 void readInJson()
 {
 	if(!exists("dub.json") && !exists("package.json") ) return;
-	/*
-	strPackageName = configKeyValue.get("name","");
-	strArgs = configKeyValue.get("args",strAddArgs);
-	strLibs = configKeyValue.get("libs","");
-	strTargetName = configKeyValue.get("targetName","");
-	strTargetType = configKeyValue.get("targetType",strTargetType); 
-	*/
 }

@@ -1,6 +1,6 @@
 dco
 ====
-dco is a build tool, it can be built by DUB and Visual Studio .NET(such as VS 2010),which is based on D2 ,now D2.067b1.
+dco is a build tool, it can build any projects on Windows,especially DFL2,now based on D2.067b1.
  
 The latest features:
 ---
@@ -36,6 +36,8 @@ How to use the 'dco':
   dco app.d
 
   dco app.d -gui (for dfl or dgui)
+  
+if you build a bigger project,please config the local.ini(get it by 'dco -ini').
 
 more help 
 ---
