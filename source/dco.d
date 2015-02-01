@@ -37,7 +37,7 @@ Authors:   FrankLIKE
 Source: $(dco.d)
 
 Created Time:2014-10-27
-Modify Time:2014-10-31~2015-1-27
+Modify Time:2014-10-31~2015-2-1
 */
 module dco;
 /// dco 
@@ -52,7 +52,7 @@ import  std.json;
 import std.typetuple;
 import std.algorithm;
 
-string strVersion ="v0.1.1";
+string strVersion ="v0.1.3";
 
 string	strAddArgs,strAddArgsdfl = " -de -w -property ";
 string	buildMode,strDebugDefault=" -debug";
@@ -62,7 +62,7 @@ string	strDFile;
 string	strAddLib;
 string	strOtherArgs;
 string	strImportDefault = " -I$(DMDInstallDir)windows/import ";
-string	strTargetPath,strTargetFileName,strTargetTypeSwitch,targetTypeDefault = "lib",targetTypeShared = "shared";
+string	strTargetFileName,strTargetTypeSwitch,targetTypeDefault = "lib",targetTypeShared = "shared";
 string	strDCEnv,strDCEnvFile;
 SysTime sourceLastUpdateTime,targetTime;
 string	compileType; 
@@ -77,7 +77,7 @@ string configFile ="dco.ini",configFileLocal = "local.ini";
 string[string] configKeyValue;
 bool bGetLocal = false;
 //ini args
-string strPackageName,strArgs,strTargetName,strTargetType ="exe",strDC ="dmd",strDCStandardEnvBin ="dmd2\\windows\\bin",strLibs ,strImport,strLflags,strDflags;
+string strPackageName,strArgs,strTargetName,strTargetType ="exe",strDC ="dmd",strDCStandardEnvBin ="dmd2\\windows\\bin",strLibs ,strImport,strLflags,strDflags,strTargetPath,strObjPath;
 //targetTypes
 enum targetTypes {exe,lib,staticLib,dynamicLib,sourceLib,none};
 string[] targetExt = ["exe","lib","dll","a"];
@@ -124,6 +124,7 @@ bool findDCEnv()
 {
 	if(!readConfig(configFile)) return false;
 	bool bLocal = readConfig(configFileLocal);
+ 
 	string strNoDC = "Not found '"~strDC~"' in your computer,please setup it.",strTemp,strTempFile;
 	string strDCExe = separator ~ strDC.stripRight() ~ ".exe";
 	string strFireWall = " Maybe FirWall stop checking the " ~ strDCExe ~ ",please stop it.";
@@ -195,7 +196,11 @@ bool readConfig(string _configFile)
  
 			strConfigPath = getcwd() ~ separator ~ _configFile;
 			bGetLocal = exists(strConfigPath);
-			if(!bGetLocal) return true;  //not find ,but can work.
+			if(!bGetLocal) return true;//not exists,but can work.
+			//{
+			//	initNewConfigFile();
+			//	return false;
+			//} 
 		}
 		auto file = File(strConfigPath); 
 		scope(failure) file.close();
@@ -205,7 +210,15 @@ bool readConfig(string _configFile)
 			if (!line.init && line[0] != '#' && line[0] != ';' && line.indexOf("=") != -1)
 			{ 
 				ptrdiff_t i =line.indexOf("=");
-				configKeyValue[line.strip()[0..i].idup] = line.strip()[i+1..$].idup;
+				ptrdiff_t j =line.indexOf(";");
+				if(j == -1)
+				{
+					configKeyValue[line.strip()[0..i].idup] = line.strip()[i+1..$].idup;
+				}
+				else
+				{
+					configKeyValue[line.strip()[0..i].idup] = line.strip()[i+1..j].idup;
+				}
 			}
 		}
 
@@ -219,7 +232,9 @@ bool readConfig(string _configFile)
 		strLflags = configKeyValue.get("lflags",strConsole); 
 		strDflags = configKeyValue.get("dflags",""); 
 		strLibs = configKeyValue.get("libs",""); 
-          
+        strTargetPath = configKeyValue.get("targetPath","");
+        strObjPath = configKeyValue.get("objPath","");
+      
 		if(isLocal)
 		{
 			switch(strLflags)
@@ -287,7 +302,7 @@ bool readConfig(string _configFile)
 				{
 					strTargetName ~= "." ~ strTargetType; 
 				}
-				strOtherArgs ~= " -of" ~ strTargetName;
+				strOtherArgs ~= " -of" ~ strTargetPath ~ separator ~ strTargetName;
 				bAssignTarget = true;
 			}
 			compileType = configKeyValue.get("compileType",""); 
@@ -537,7 +552,7 @@ void buildExe(string[] args)
 
 	if(bBuildSpecialLib)
 	{
-		strOtherArgs ~= " -of" ~ strTargetLib;
+		strOtherArgs ~= " -of" ~ strTargetPath ~ separator ~ strTargetLib;
 		strAddLib = strLibs;
 		strTargetFileName = getcwd() ~ separator ~ strTargetLib;
 	}
@@ -561,13 +576,24 @@ void buildExe(string[] args)
 	}
 
 build: 
+
+	if(buildMode.toLower().indexOf("debug") != -1)
+	{
+		strOtherArgs ~= " -g";
+	}
 	
-	if(strDflags !="")
+	if(strDflags != "")
     {
     	strOtherArgs ~= " ";
     	strOtherArgs ~= strDflags;
     }
  
+	if(strObjPath != "")
+	{
+		strOtherArgs ~= " -od";
+    	strOtherArgs ~= strObjPath;
+	}
+	
 	if(bUseSpecialLib)
 	{
 		if(SpecialLib == "dfl")
@@ -899,6 +925,8 @@ void initNewConfigFile()
 	ini.writeln("compileType=");
 	ini.writeln(";buildMode=debug;//release");
 	ini.writeln("buildMode=debug");
+	ini.writeln("targetPath=Debug;// bin\\Debug");
+	ini.writeln("objPath=Debug;// bin\\Debug");
 
 	ini.close();
 
