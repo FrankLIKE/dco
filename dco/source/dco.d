@@ -1,7 +1,7 @@
 ﻿///	
 // Written in the D programming language.
 /**
-This is a build tool,compile *.d to exe or lib,and help to build dfl2 gui (or other you like).
+This is a build tool,compile *.d to exe or lib,and help to build dgui,dfl2 gui (or other you like).
 now default DC is dmd ,default platform is windows.
 
 If your DC is dmd, dco can start only 'dco.ini' config file. 
@@ -37,7 +37,7 @@ Authors:   FrankLIKE
 Source: $(dco.d)
 
 Created Time:2014-10-27
-Modify Time:2014-10-31~2015-2-1
+Modify Time:2014-10-31~2016-08-12
 */
 module dco;
 /// dco 
@@ -52,12 +52,12 @@ import  std.json;
 import std.typetuple;
 import std.algorithm;
 
-string strVersion ="v0.1.4";
+string strVersion = "v0.1.4";
 
 string	strAddArgs,strAddArgsdfl = " -de -w ";
-string	buildMode,strDebugDefault=" -debug";
-string	strTargetLflags,strConsole=" -L-su:console:4 ",strWindows = " -L-Subsystem:Windows ",strWindows64 = " -L-Subsystem:Windows -L-ENTRY:mainCRTStartup ";
-string	strTargetLib,SpecialLib = "",strWinLibs=" ole32.lib oleAut32.lib gdi32.lib Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib kernel32.lib ",strWinLibs64 =" user32.lib "; 
+string	buildMode,strDebugDefault= " -debug";
+string	strTargetLflags,strConsole= " -L-su:console:4 ",strWindows = " -L-Subsystem:Windows ",strWindows64 = " -L-Subsystem:Windows -L-ENTRY:mainCRTStartup ";
+string	strTargetLib,SpecialLib = "",strWinLibs = " ole32.lib oleAut32.lib gdi32.lib Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib kernel32.lib ",strWinLibs64 = " user32.lib "; 
 string	strDFile;
 string	strAddLib;
 string	strOtherArgs;
@@ -67,17 +67,17 @@ string	strDCEnv,strDCEnvFile;
 SysTime sourceLastUpdateTime,targetTime;
 string	compileType; 
 
-bool	bUseSpecialLib =false,bDebug =true,bBuildSpecialLib =false;
-bool	bCopy =false ,bDisplayBuildStr=false,bDisplayCopyInfo =true;
-bool	bForce = false,bInitINI =false,bHelp =false;
-bool 	bAssignTarget =false;
+bool	bUseSpecialLib = false,bDebug = true,bBuildSpecialLib = false;
+bool	bCopy = false ,bDisplayBuildStr = false,bDisplayCopyInfo = true;
+bool	bForce = false,bInitINI = false,bHelp =false,bVersion = false;
+bool 	bAssignTarget = false;
 
 //ini
 string configFile ="dco.ini",configFileLocal = "local.ini";
 string[string] configKeyValue;
 bool bGetLocal = false;
 //ini args
-string strPackageName,strArgs,strTargetName,strTargetType ="exe",strDC ="dmd",strDCStandardEnvBin ="dmd2\\windows\\bin",strLibs ,strImport,strLflags,strDflags,strTargetPath,strObjPath;
+string strPackageName,strArgs,strTargetName,strTargetType = "exe",strDC = "dmd",strDCStandardEnvBin = "dmd2\\windows\\bin",strLibs ,strImport,strLflags,strDflags,strTargetPath,strObjPath;
 //targetTypes
 enum targetTypes {exe,lib,staticLib,dynamicLib,sourceLib,none};
 string[] targetExt = ["exe","lib","dll","a"];
@@ -92,6 +92,12 @@ void main(string[] args)
 		if(bHelp)
 		{
 			ShowUsage();
+			return;
+		}
+		
+		if(bVersion)
+		{
+			ShowVersion();
 			return;
 		}
 
@@ -125,7 +131,7 @@ bool findDCEnv()
 	if(!readConfig(configFile)) return false;
 	bool bLocal = readConfig(configFileLocal);
  
-	string strNoDC = "Not found '"~strDC~"' in your computer,please setup it.",strTemp,strTempFile;
+	string strNoDC = "Not found '" ~ strDC ~ "' in your computer,please setup it.",strTemp,strTempFile;
 	string strDCExe = separator ~ strDC.stripRight() ~ ".exe";
 	string strFireWall = " Maybe FirWall stop checking the " ~ strDCExe ~ ",please stop it.";
 
@@ -142,7 +148,7 @@ bool findDCEnv()
 		}
 	}
 
-	if(strDCEnvFile =="")
+	if(strDCEnvFile == "")
 	{
 		writeln(strNoDC);
 		return false;
@@ -161,7 +167,7 @@ bool checkDC(string DCPath,string strDCExe)
 		strDCEnv = DCPath;
 		strDCEnvFile =  DCPath ~ strDCExe;
 
-		string strTempFile = DCPath ~ separator ~"dco.exe";
+		string strTempFile = DCPath ~ separator ~ "dco.exe";
 		if(exists(strTempFile)) return true;
 	}
 	return false;
@@ -171,7 +177,7 @@ bool readConfig(string _configFile)
 { 
 	try
 	{ 
-		string strConfigPath ="",targetType ="",targetName ="";
+		string strConfigPath = "",targetType = "",targetName = "";
 		bool isLocal = (_configFile != configFile);
  
 		if(!isLocal)
@@ -209,8 +215,8 @@ bool readConfig(string _configFile)
 		{
 			if (!line.init && line[0] != '#' && line[0] != ';' && line.indexOf("=") != -1)
 			{ 
-				ptrdiff_t i =line.indexOf("=");
-				ptrdiff_t j =line.indexOf(";");
+				ptrdiff_t i = line.indexOf("=");
+				ptrdiff_t j = line.indexOf(";");
 				if(j == -1)
 				{
 					configKeyValue[line.strip()[0..i].idup] = line.strip()[i+1..$].idup;
@@ -353,6 +359,10 @@ bool checkArgs(string[] args)
 		{
 			bHelp = true;
 		}
+		else if(c == "version")
+		{
+			bVersion = true;
+		}
 		else if(c == "force")
 		{
 			bForce = true;
@@ -384,7 +394,7 @@ bool CheckBinFolderAndCopy()
 {
 	if(checkIsUpToDate())
 	{
-		writeln(strTargetName ~" file is up to date.");
+		writeln(strTargetName ~ " file is up to date.");
 		return false;
 	}
 	return true;
@@ -404,7 +414,7 @@ bool checkIsUpToDate()
 				auto files = dirEntries(".","dco.{exe,ini}",SpanMode.shallow);
 				foreach(d;files)
 				{
-					string strcopy ="copy " ~ d ~" " ~ strDCEnv;
+					string strcopy ="copy " ~ d ~ " " ~ strDCEnv;
 					writeln(strcopy);
 					auto pid = enforce(spawnShell(strcopy.dup()),"spawnShell(strcopy.dup()) is err!");
 					if (wait(pid) != 0)
@@ -478,9 +488,6 @@ void buildExe(string[] args)
 
 			switch(c)
 			{
-				case "h","help":
-					ShowUsage();
-					break;
 				case "gui":
 					strTargetLflags = strWindows;
 					bUseSpecialLib = true;
@@ -782,7 +789,7 @@ void getTargetInfo()
 		break;
 
 	}
-	if(i ==0)
+	if(i == 0)
 	{
 		if(strTargetName.indexOf("." ~ strTargetType) == -1)
 		{
@@ -836,7 +843,7 @@ Switches:
 -init      the same to -ini.
 -copy      Copy new exe or lib to 'windows/bin' or 'lib' Folder. 
 -release   Build files's Release version(Default version is 'debug').
--gui       Make a Windows GUI exe without a console(For DFL or Dgui).
+-gui       Make a Windows GUI exe without a console(For Dgui or DFL).
 -use       Use the Sepetail Lib to create exe with console.
 -win       Make a Windows GUI exe without a console
            (For any other: the same to -winexe,-windows).
@@ -847,10 +854,16 @@ Switches:
 	    Comctl32.lib Comdlg32.lib advapi32.lib uuid.lib ws2_32.lib).
 -m64       Generate 64bit lib or exe.
 -m32mscoff Generate x86 ms coff lib or exe,and please set some info in sc.ini. 
+-version	Current version.
 
 IgnoreFiles:If you have some files to ignore,please put them in Folder 'ignoreFiles'.
   ");
 } 
+
+void ShowVersion()
+{
+	writeln("dco Current version is " ~ strVersion ~ ", written by FrankLIKE.");
+}
 
 void ReadDFile(string dFile,bool bPackage)
 { 
@@ -910,7 +923,7 @@ void initNewConfigFile()
 	{
 		ini.writeln("SpecialLib=" ~ SpecialLib);
 	}
-    if(strImportDefault =="")
+    if(strImportDefault == "")
 	{
 		ini.writeln(";importPath=" );
 		ini.writeln("importPath=");
