@@ -6,7 +6,7 @@ The latest features:
 ---
 1、dfl or dgui can be build by dco,and auto copy files to lib or lib64 or bin folder.
 
-2、dco can be used in Visual Studio .net (here VS 2010).
+2、dco can be used in Visual Studio .net (here VS 2010,2015).
 
 3、dco can be used by DUB:
 
@@ -17,7 +17,7 @@ How to get the libs or exe files:
 
 2、dub fetch dco --local and run the build.bat in the path, to get them in this folder.
    or 
-     dub fetch dco,and run the dubbuild.bat in the path(C:\Users\[yourUserName]\AppData\Roaming\dub\packages\dco-0.0.7)
+     dub fetch dco,and run the dubbuild.bat in the path(C:\Users\[yourUserName]\AppData\Roaming\dub\packages\dco-0.1.5)
 
 3、Open the dco.sln, and run the projects to get them in 'debug' or 'release' folder(Now,auto copy to the '$(DMDInstallDir)windows\bin' folder ).
 	 
@@ -46,11 +46,11 @@ more help
 ---
    build dco:
 
-  ![build dco](https://raw.githubusercontent.com/FrankLIKE/dco/master/Images/dco.png)
+  ![build dco](https://raw.githubusercontent.com/FrankLIKE/dco/master/dco/Images/dco.png)
 
    dco help:
 
-  ![dco help](https://raw.githubusercontent.com/FrankLIKE/dco/master/Images/dco_help.png)
+  ![dco help](https://raw.githubusercontent.com/FrankLIKE/dco/master/dco/Images/dco_help.png)
    
   
 
