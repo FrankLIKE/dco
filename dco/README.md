@@ -1,12 +1,12 @@
 dco
 ====
-dco is a build tool, it can build any projects on Windows,especially DFL2,now based on D2.071.1.
+dco is a build tool, it can build any projects on Windows,especially DFL2,now based on D2.072.
  
 The latest features:
 ---
 1、dfl or dgui can be build by dco,and auto copy files to lib or lib64 or bin folder.
 
-2、dco can be used in Visual Studio .net (here VS 2010 and VS2015).
+2、dco can be used in Visual Studio .net (here VS 2010).
 
 3、dco can be used by DUB:
 
