@@ -46,11 +46,11 @@ more help
 ---
    build dco:
 
-  ![build dco](https://raw.githubusercontent.com/FrankLIKE/dco/master/Images/dco.png)
+  ![build dco](https://raw.githubusercontent.com/FrankLIKE/dco/master/dco/Images/dco.png)
 
    dco help:
 
-  ![dco help](https://raw.githubusercontent.com/FrankLIKE/dco/master/Images/dco_help.png)
+  ![dco help](https://raw.githubusercontent.com/FrankLIKE/dco/master/dco/Images/dco_help.png)
    
   
 
