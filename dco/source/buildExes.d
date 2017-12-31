@@ -1,12 +1,14 @@
 module dco.buildExes;
 
+import core.time;
+
 import std.file;
 import std.string;
 import std.process;
 import std.stdio;
-import	std.datetime;
+import std.datetime;
+import std.datetime.stopwatch;
 import std.exception;
-
 import dco.readConfigs;
 import dco.globalInfo;
 import dco.checkInfo;
@@ -201,7 +203,7 @@ void buildExe()
     string buildstr = strDC ~ strAddArgsdfl ~ strCommon ~ "\r\n";
 	buildstr = bUseSpecialLib ? buildstr : strDC ~ strCommon;
 
-	StopWatch sw;
+	std.datetime.stopwatch.StopWatch sw;
 	sw.start();
 	auto pid =  enforce(spawnShell(buildstr.dup()),"build function is error! ");
 
@@ -220,7 +222,7 @@ void buildExe()
 		sw.stop();
 
 		writeln(buildstr);
-		writeln("\nCompile time :" , sw.peek().msecs/1000.0,"secs");
+		writeln("\nCompile time :" , sw.peek().total!"seconds","secs");
 
 		if(bCopy)
 		{

@@ -1,6 +1,6 @@
 dco
 ====
-dco is a build tool, it can build any projects on Windows,especially DFL2,now based on D2.072.
+dco is a build tool, it can build any projects on Windows,especially DFL2,now based on D2.077.1.
  
 The latest features:
 ---

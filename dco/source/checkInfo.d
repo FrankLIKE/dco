@@ -17,6 +17,7 @@ bool checkArgs(string[] args)
 	string c;
 	size_t p;
 	bool bDFile =false;
+	readConfig(".\\dco.ini");
 	foreach(int i,arg;args)
 	{
 		if(i == 0) continue;
@@ -24,8 +25,18 @@ bool checkArgs(string[] args)
 		p = c.indexOf('-');
 		if(p == -1 || c.indexOf(".d") != -1)
 		{
-
-			strTargetName = c[0..$-1].idup;
+			if(c.indexOf("of") != -1)
+			{
+				bAssignTarget = true;
+				strTargetName = c[(c.indexOf("of")+1)..$];
+			}
+			else
+			{	
+				if(strTargetName == "")
+				{
+					strTargetName = c[0..$-1].idup;
+				}
+			}
  			strDFile ~= " ";
 			strDFile ~= c;
 			bDFile = true;
@@ -46,11 +57,6 @@ bool checkArgs(string[] args)
 		else if(c == "force")
 		{
 			bForce = true;
-		}
-		else if(c.indexOf("of") != -1)
-		{
-			bAssignTarget = true;
-			strTargetName = c[(c.indexOf("of")+1)..$];
 		}
 		else if(strPackageName !="")
 		{
